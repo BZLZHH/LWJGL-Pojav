@@ -356,8 +356,7 @@ public class Mouse {
                 absolute_x = x = poll_coord1;
                 absolute_y = y = poll_coord2;
             }
-            System.out.println("dx: " + dx + " dy: " + dy + " x: "+ x +" y: " + y+" grabbed: "+isGrabbed() +" pc1: "+poll_coord1+" pc2: "+poll_coord2);
-
+            
             if(clipMouseCoordinatesToWindow) {
                 x = Math.min(Display.getWidth() - 1, Math.max(0, x));
                 y = Math.min(Display.getHeight() - 1, Math.max(0, y));
