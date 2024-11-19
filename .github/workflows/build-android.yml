@@ -28,7 +28,7 @@ jobs:
 
     - name: Upload modules release output
       if: ${{matrix.arch == 'arm64'}} # Only upload this once
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: lwjgl3-android-modules
         path: bin/RELEASE
