@@ -141,22 +141,17 @@ public class GLFWInputImplementation implements InputImplementation {
     }
 
     public void putMouseEventWithCoords(byte button, byte state, int coord1, int coord2, int dz, long nanos) {
-        int acoord1=0;
-        int acoord2=0;
-        if(coord1 == -1 && coord2 == -1) {
-            acoord1 = mouseX;
-            acoord2 = mouseY;
-        }else{
-            acoord1 = coord1;
-            acoord2= coord2;
-        }
+        int dx = 0, dy = 0;
+        if(coord1 != -1) dx = coord1 - mouseX;
+        if(coord2 != -1) dy = (coord2 - mouseY) * -1;
+            
         event_buffer.clear();
         event_buffer.put(button).put(state);
         //always put deltas when grabbed
         if (grab) {
-            event_buffer.putInt(acoord1-mouseX).putInt(acoord2-mouseY);
+            event_buffer.putInt(dx).putInt(dy);
         }else{
-            event_buffer.putInt(acoord1).putInt(acoord2);
+            event_buffer.putInt(dx + mouseX).putInt(dy + mouseY);
         }
         if(button != -1) {
             mouse_buffer[button]=state;
@@ -165,8 +160,8 @@ public class GLFWInputImplementation implements InputImplementation {
         event_buffer.flip();
         event_queue.putEvent(event_buffer);
         last_event_nanos = nanos;
-        mouseX = acoord1;
-        mouseY = acoord2;
+        mouseX += dx;
+        mouseY += dy;
     }
 
     public void setMouseButtonInGrabMode(byte button, byte state) {
