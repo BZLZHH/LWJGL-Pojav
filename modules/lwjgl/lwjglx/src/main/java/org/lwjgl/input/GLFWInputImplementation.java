@@ -16,14 +16,10 @@ public class GLFWInputImplementation implements InputImplementation {
     private final ByteBuffer keyboardEvent = ByteBuffer.allocate(Keyboard.EVENT_SIZE);
     public final byte[] key_down_buffer = new byte[Keyboard.KEYBOARD_SIZE];
     public final byte[] mouse_buffer = new byte[3];
-    public int mouseX = 0;
-    public int mouseY = 0;
-    public int mouseLastEventX = 0;
-    public int mouseLastEventY = 0;
+    public int mouseX = 0, lastPhysicalX = 0;
+    public int mouseY = 0, lastPhysicalY = 0;
     public int mouseLastX = 0;
     public int mouseLastY = 0;
-    public int mouseComparatorX;
-    public int mouseComparatorY;
     public boolean grab;
     private long last_event_nanos = System.nanoTime();
     @Override
@@ -142,8 +138,19 @@ public class GLFWInputImplementation implements InputImplementation {
 
     public void putMouseEventWithCoords(byte button, byte state, int coord1, int coord2, int dz, long nanos) {
         int dx = 0, dy = 0;
-        if(coord1 != -1) dx = coord1 - mouseX;
-        if(coord2 != -1) dy = (coord2 - mouseY) * -1;
+        if(coord1 != -1 && coord2 != -1) {
+            if(grab) {
+                dx = coord1 - lastPhysicalX;
+                dy = (coord2 - lastPhysicalY) * -1;
+                mouseX += dx;
+                mouseY += dy;
+            } else {
+                mouseX = coord1;
+                mouseY = (int)((coord2 - Display.getHeight())*-1);
+            }
+            lastPhysicalX = coord1;
+            lastPhysicalY = coord2;
+        }
             
         event_buffer.clear();
         event_buffer.put(button).put(state);
@@ -151,7 +158,7 @@ public class GLFWInputImplementation implements InputImplementation {
         if (grab) {
             event_buffer.putInt(dx).putInt(dy);
         }else{
-            event_buffer.putInt(dx + mouseX).putInt(dy + mouseY);
+            event_buffer.putInt(mouseX).putInt(mouseY);
         }
         if(button != -1) {
             mouse_buffer[button]=state;
@@ -160,8 +167,6 @@ public class GLFWInputImplementation implements InputImplementation {
         event_buffer.flip();
         event_queue.putEvent(event_buffer);
         last_event_nanos = nanos;
-        mouseX += dx;
-        mouseY += dy;
     }
 
     public void setMouseButtonInGrabMode(byte button, byte state) {
